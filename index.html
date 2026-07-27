@@ -34,6 +34,8 @@
   }
   .app{
     max-width:520px;
+    width:100%;
+    flex-shrink:0;
     margin:0;
     min-height:100vh;
     display:flex;
@@ -53,14 +55,32 @@
   .pdf-panel{
     display:none;
   }
-  @media (min-width: 980px){
-    .pdf-panel{
-      display:block;
+  .pdf-panel.open{
+    display:flex;
+  }
+  @media (min-width: 1090px){
+    .pdf-panel.open{
       width:520px;
+      flex-shrink:0;
       height:100vh;
       position:sticky;
       top:0;
       border-left:2px solid var(--ink);
+      background:var(--paper-dark);
+    }
+  }
+  @media (max-width: 1089.98px){
+    .shell{
+      flex-direction:column;
+      align-items:stretch;
+      justify-content:flex-start;
+    }
+    .pdf-panel.open{
+      position:relative;
+      width:100%;
+      height:80vh;
+      border-left:none;
+      border-top:2px solid var(--ink);
       background:var(--paper-dark);
     }
   }
@@ -106,32 +126,20 @@
 
   /* Mobile: floating button + full-screen overlay */
   .pdf-fab{
-    position:fixed;
-    right:16px;
-    bottom:20px;
-    z-index:50;
-    background:var(--ink);
-    color:var(--white);
-    border:none;
-    border-radius:24px;
-    padding:12px 18px;
+    background:transparent;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:4px 11px;
     font-family:'IBM Plex Sans', sans-serif;
-    font-weight:600;
-    font-size:13.5px;
-    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    font-weight:500;
+    font-size:11.5px;
     cursor:pointer;
+    white-space:nowrap;
   }
-  @media (min-width: 980px){
-    .pdf-fab{ display:none; }
-  }
-  .pdf-panel.mobile-open{
-    display:flex !important;
-    position:fixed;
-    inset:0;
-    z-index:100;
-    width:100%;
-    height:100%;
-    border-left:none;
+  .pdf-fab:hover{
+    color:var(--ink);
+    border-color:var(--ink-soft);
   }
 
   .mini-zeile{
@@ -172,36 +180,40 @@
   header{
     padding:22px 20px 16px;
     border-bottom:2px solid var(--ink);
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:var(--paper);
     display:flex;
-    align-items:baseline;
+    align-items:center;
     justify-content:space-between;
+  }
+  header .title{
+    font-family:'IBM Plex Serif', serif;
+    font-weight:600;
+    font-size:20px;
+    letter-spacing:-0.01em;
   }
   header .doc-id{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:13px;
     letter-spacing:0.06em;
     color:var(--ink-soft);
     display:flex;
     align-items:center;
     gap:6px;
   }
-  .year-select{
+  .year-label{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
+    font-size:14px;
     font-weight:600;
     color:var(--ink);
-    background:var(--white);
-    border:1.5px solid var(--line);
-    border-radius:4px;
-    padding:3px 6px;
-    cursor:pointer;
   }
-  .year-select:focus-visible{outline:2px solid var(--stamp); outline-offset:1px;}
-  header .title{
-    font-family:'IBM Plex Serif', serif;
-    font-weight:600;
-    font-size:20px;
-    letter-spacing:-0.01em;
+  header .pdf-fab{
+    position:relative;
+    top:-1px;
+    font-size:11px;
+    padding:3px 10px;
   }
 
   /* Layout: margin strip with Zeile numbers + main content */
@@ -581,14 +593,11 @@
     *{transition:none !important;}
   }
 
-  .print-only{display:none;}
-
   @media print{
     body{background:#fff;}
-    .pdf-panel, .pdf-fab, .margin-strip, .nav-bar, .year-select, .stamp-mark, .eyebrow{
+    .pdf-panel, .pdf-fab, .margin-strip, .nav-bar, .stamp-mark, .eyebrow{
       display:none !important;
     }
-    .print-only{display:inline;}
     .shell{display:block;}
     .app{max-width:100%; margin:0; min-height:auto;}
     .body-grid{display:block;}
@@ -613,14 +622,12 @@
 <div class="shell">
 <div class="app">
   <header>
-    <div>
-      <div class="title">Anlage KAP</div>
-    </div>
+    <div class="title">Anlage KAP</div>
     <div class="doc-id">
       Steuerjahr
-      <select id="taxYearSelect" class="year-select"></select>
-      <span id="taxYearPrintLabel" class="print-only"></span>
+      <span id="taxYearLabel" class="year-label">–</span>
     </div>
+    <button class="pdf-fab" id="pdfToggleBtn">📄 Formular anzeigen</button>
   </header>
 
   <div class="body-grid">
@@ -638,12 +645,10 @@
       </div>
       <button class="pdf-close" id="pdfCloseBtn" aria-label="Schließen">×</button>
     </div>
-    <iframe id="pdfFrame" src="anlage-kap-formular-2025.pdf#toolbar=0&view=FitH" title="Anlage KAP Formular"></iframe>
+    <iframe id="pdfFrame" src="anlage-kap-formular-2025.pdf#toolbar=0&zoom=page-width" title="Anlage KAP Formular"></iframe>
   </div>
 </aside>
 </div>
-
-<button class="pdf-fab" id="pdfToggleBtn">📄 Formular anzeigen</button>
 
 <script>
 // DBA-Höchstsätze: Anteil der Bruttodividende, der max. auf die deutsche
@@ -837,12 +842,26 @@ function renderIntro(main){
       am Ende alles zusammen. Er ersetzt keine Steuerberatung, hilft dir aber, die
       Steuerbescheinigungen richtig zuzuordnen.
     </p>
-    <div class="spacer"></div>
-    <div class="nav-bar">
-      <button class="primary" id="startBtn">Fragebogen starten</button>
+
+    <div class="eyebrow" style="margin-top:8px;">Für welches Steuerjahr?</div>
+    <div class="choice-row">
+      ${SUPPORTED_YEARS.map(y => `
+        <button class="choice" data-year="${y}">
+          ${y}
+          <small>Formularstand ${y} — Zeilennummern in dieser App bestätigt identisch</small>
+        </button>
+      `).join('')}
     </div>
+
+    <div class="spacer"></div>
   `;
-  document.getElementById('startBtn').onclick = goNext;
+  main.querySelectorAll('.choice').forEach(btn=>{
+    btn.onclick = ()=>{
+      state.taxYear = parseInt(btn.dataset.year, 10);
+      updatePdfForYear();
+      goNext();
+    };
+  });
 }
 
 function renderBrokerType(main){
@@ -1423,26 +1442,31 @@ function renderResult(main){
   };
 }
 
+let pdfOpen = window.innerWidth >= 1090; // Desktop: standardmäßig sichtbar, Mobile: standardmäßig zu
+
+function updatePdfPanelVisibility(){
+  const panel = document.getElementById('pdfPanel');
+  panel.classList.toggle('open', pdfOpen);
+  document.getElementById('pdfToggleBtn').textContent = pdfOpen ? '📄 Formular ausblenden' : '📄 Formular anzeigen';
+  if(pdfOpen && window.innerWidth < 1090){
+    panel.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
 document.getElementById('pdfToggleBtn').onclick = ()=>{
-  document.getElementById('pdfPanel').classList.add('mobile-open');
+  pdfOpen = !pdfOpen;
+  updatePdfPanelVisibility();
 };
 document.getElementById('pdfCloseBtn').onclick = ()=>{
-  document.getElementById('pdfPanel').classList.remove('mobile-open');
+  pdfOpen = false;
+  updatePdfPanelVisibility();
 };
+updatePdfPanelVisibility();
 
 function updatePdfForYear(){
-  document.getElementById('pdfFrame').src = `anlage-kap-formular-${state.taxYear}.pdf#toolbar=0&view=FitH`;
+  document.getElementById('pdfFrame').src = `anlage-kap-formular-${state.taxYear}.pdf#toolbar=0&zoom=page-width`;
   document.getElementById('pdfSub').textContent = `Anlage KAP · Steuerjahr ${state.taxYear}`;
-  document.getElementById('taxYearPrintLabel').textContent = state.taxYear;
+  document.getElementById('taxYearLabel').textContent = state.taxYear;
 }
-
-const yearSelect = document.getElementById('taxYearSelect');
-yearSelect.innerHTML = SUPPORTED_YEARS.map(y => `<option value="${y}">${y}</option>`).join('');
-yearSelect.value = state.taxYear;
-yearSelect.onchange = ()=>{
-  state.taxYear = parseInt(yearSelect.value, 10);
-  updatePdfForYear();
-};
 updatePdfForYear();
 
 render();
