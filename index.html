@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="color-scheme" content="light only">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Anlage KAP · Fragebogen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light only;
+    --paper:#F2EFE8;
+    --paper-dark:#E7E2D6;
+    --ink:#1E2A38;
+    --ink-soft:#5B6673;
+    --stamp:#8C2F1B;
+    --stamp-soft:#C4623F;
+    --line:#C9C2AF;
+    --ok:#3D6B4F;
+    --white:#FCFBF8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:520px;
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    background:var(--paper);
+  }
+
+  .shell{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:100vh;
+  }
+
+  /* PDF reference panel */
+  .pdf-panel{
+    display:none;
+  }
+  @media (min-width: 980px){
+    .pdf-panel{
+      display:block;
+      width:520px;
+      height:100vh;
+      position:sticky;
+      top:0;
+      border-left:2px solid var(--ink);
+      background:var(--paper-dark);
+    }
+  }
+  .pdf-panel-inner{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+  }
+  .pdf-panel-header{
+    padding:16px 18px;
+    border-bottom:1.5px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .pdf-panel-header .pdf-title{
+    font-family:'IBM Plex Serif', serif;
+    font-weight:600;
+    font-size:15px;
+  }
+  .pdf-panel-header .pdf-sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .pdf-close{
+    background:none;
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    width:32px;
+    height:32px;
+    font-size:16px;
+    color:var(--ink);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .pdf-panel iframe{
+    flex:1;
+    width:100%;
+    border:none;
+  }
+
+  /* Mobile: floating button + full-screen overlay */
+  .pdf-fab{
+    position:fixed;
+    right:16px;
+    bottom:20px;
+    z-index:50;
+    background:var(--ink);
+    color:var(--white);
+    border:none;
+    border-radius:24px;
+    padding:12px 18px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    cursor:pointer;
+  }
+  @media (min-width: 980px){
+    .pdf-fab{ display:none; }
+  }
+  .pdf-panel.mobile-open{
+    display:flex !important;
+    position:fixed;
+    inset:0;
+    z-index:100;
+    width:100%;
+    height:100%;
+    border-left:none;
+  }
+
+  .mini-zeile{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--stamp);
+    border:1px solid var(--stamp);
+    border-radius:3px;
+    padding:1px 5px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .mini-zeile.neutral{
+    color:var(--ink-soft);
+    border-color:var(--line);
+  }
+  .field-explain{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:-14px 0 22px;
+  }
+  .netto-preview{
+    background:var(--paper-dark);
+    border-radius:4px;
+    padding:12px 14px;
+    margin-bottom:20px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .netto-preview strong{
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  /* Header — official form strip */
+  header{
+    padding:22px 20px 16px;
+    border-bottom:2px solid var(--ink);
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  header .doc-id{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .year-select{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--white);
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    padding:3px 6px;
+    cursor:pointer;
+  }
+  .year-select:focus-visible{outline:2px solid var(--stamp); outline-offset:1px;}
+  header .title{
+    font-family:'IBM Plex Serif', serif;
+    font-weight:600;
+    font-size:20px;
+    letter-spacing:-0.01em;
+  }
+
+  /* Layout: margin strip with Zeile numbers + main content */
+  .body-grid{
+    display:flex;
+    flex:1;
+  }
+  .margin-strip{
+    width:44px;
+    flex-shrink:0;
+    border-right:1px solid var(--line);
+    padding-top:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0;
+  }
+  .zeile-tick{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--line);
+    padding:10px 0;
+    transition:color .4s ease, transform .4s ease;
+    position:relative;
+  }
+  .zeile-tick.active{
+    color:var(--stamp);
+    font-weight:600;
+  }
+  .zeile-tick.filled{
+    color:var(--ink);
+    font-weight:600;
+  }
+  .zeile-tick.filled::after{
+    content:'';
+    position:absolute;
+    right:-23px;
+    top:50%;
+    width:6px;
+    height:6px;
+    background:var(--ok);
+    border-radius:50%;
+    transform:translateY(-50%);
+  }
+
+  main{
+    flex:1;
+    padding:28px 20px 100px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:var(--stamp);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'IBM Plex Serif', serif;
+    font-weight:600;
+    font-size:24px;
+    line-height:1.3;
+    margin:0 0 8px;
+  }
+  .hint{
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.55;
+    margin:0 0 26px;
+  }
+
+  .choice-row{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .choice{
+    text-align:left;
+    background:var(--white);
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    padding:16px 16px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:15px;
+    font-weight:500;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .choice small{
+    display:block;
+    font-weight:400;
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin-top:4px;
+  }
+  .choice:hover{border-color:var(--stamp-soft);}
+  .choice.selected{
+    border-color:var(--stamp);
+    background:#FBF0EC;
+  }
+
+  .field{margin-bottom:28px;}
+  .field label{
+    display:block;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .amount-input{
+    display:flex;
+    align-items:baseline;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:6px;
+  }
+  .amount-input span{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    color:var(--ink-soft);
+    margin-right:8px;
+  }
+  .amount-input input{
+    border:none;
+    background:transparent;
+    outline:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:28px;
+    font-weight:500;
+    color:var(--ink);
+    width:100%;
+    -moz-appearance:textfield;
+  }
+  .amount-input input::-webkit-outer-spin-button,
+  .amount-input input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .amount-input input::placeholder{color:var(--line);}
+
+  .spacer{flex:1;}
+
+  .nav-bar{
+    position:sticky;
+    bottom:0;
+    background:linear-gradient(to top, var(--paper) 60%, transparent);
+    padding:20px 20px 22px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  button.primary, button.secondary{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:14px 20px;
+    border-radius:4px;
+    cursor:pointer;
+    border:1.5px solid var(--ink);
+  }
+  button.primary{
+    background:var(--ink);
+    color:var(--white);
+    flex:1;
+  }
+  button.primary:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+  }
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--line);
+  }
+  button:focus-visible{outline:2px solid var(--stamp); outline-offset:2px;}
+
+  /* Result screen */
+  .result-card{
+    background:var(--white);
+    border:1.5px solid var(--ink);
+    border-radius:6px;
+    padding:20px;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .result-card .zeile-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--stamp);
+    font-weight:600;
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .result-card .label{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+    line-height:1.45;
+  }
+  .result-card .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:32px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .result-card .value .cur{
+    font-size:18px;
+    color:var(--ink-soft);
+    margin-left:4px;
+  }
+  .note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--line);
+  }
+  .disclaimer{
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    background:var(--paper-dark);
+    border-radius:4px;
+    padding:14px 16px;
+    margin-top:8px;
+  }
+
+  /* Country rows */
+  .country-row{
+    background:var(--white);
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    padding:14px 14px 6px;
+    margin-bottom:12px;
+    position:relative;
+  }
+  .country-row select{
+    width:100%;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14.5px;
+    font-weight:500;
+    color:var(--ink);
+    background:var(--white);
+    border:none;
+    border-bottom:1.5px solid var(--ink);
+    padding:6px 0 8px;
+    margin-bottom:10px;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .country-row .two-col{
+    display:flex;
+    gap:14px;
+  }
+  .country-row .two-col .field{
+    flex:1;
+    margin-bottom:12px;
+  }
+  .country-row .two-col label{
+    font-size:11.5px;
+  }
+  .country-row .two-col .amount-input{
+    padding-bottom:4px;
+  }
+  .country-row .two-col .amount-input input{
+    font-size:18px;
+  }
+  .country-row .two-col .amount-input span{
+    font-size:16px;
+  }
+  .country-row .cap-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ok);
+    margin:-4px 0 10px;
+  }
+  .remove-row{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:13px;
+    cursor:pointer;
+    padding:2px 6px;
+  }
+  .add-row-btn{
+    width:100%;
+    background:transparent;
+    border:1.5px dashed var(--line);
+    border-radius:4px;
+    padding:12px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink-soft);
+    cursor:pointer;
+    margin-bottom:20px;
+  }
+  .add-row-btn:hover{border-color:var(--stamp-soft); color:var(--stamp);}
+
+  .skip-toggle{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:var(--paper-dark);
+    border-radius:4px;
+    padding:12px 14px;
+    margin-bottom:20px;
+    cursor:pointer;
+  }
+  .skip-toggle input{
+    margin-top:3px;
+    flex-shrink:0;
+    width:16px;
+    height:16px;
+    accent-color:var(--stamp);
+  }
+  .skip-toggle span{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.45;
+  }
+  .country-row.disabled{
+    opacity:.4;
+    pointer-events:none;
+  }
+
+  .broker-sub{
+    margin:6px 0 4px;
+    padding:14px 14px 4px;
+    background:var(--paper-dark);
+    border-radius:4px;
+  }
+  .broker-sub .sub-label{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+  .broker-chip{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 4px;
+    cursor:pointer;
+    border-bottom:1px solid var(--line);
+  }
+  .broker-chip:last-child{border-bottom:none;}
+  .broker-chip input{
+    width:16px;
+    height:16px;
+    accent-color:var(--stamp);
+    flex-shrink:0;
+  }
+  .broker-chip span{
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink);
+  }
+  .stamp-mark{
+    position:absolute;
+    top:16px;
+    right:16px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--ok);
+    border:1px solid var(--ok);
+    border-radius:3px;
+    padding:2px 6px;
+    letter-spacing:.05em;
+    transform:rotate(-4deg);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+
+  .print-only{display:none;}
+
+  @media print{
+    body{background:#fff;}
+    .pdf-panel, .pdf-fab, .margin-strip, .nav-bar, .year-select, .stamp-mark, .eyebrow{
+      display:none !important;
+    }
+    .print-only{display:inline;}
+    .shell{display:block;}
+    .app{max-width:100%; margin:0; min-height:auto;}
+    .body-grid{display:block;}
+    main{padding:0;}
+    header{border-bottom:2px solid #000; padding:0 0 12px; margin-bottom:16px;}
+    h1{font-size:20px;}
+    .hint{color:#333;}
+    .result-card{
+      border:1px solid #000;
+      background:#fff;
+      break-inside:avoid;
+      page-break-inside:avoid;
+      margin-bottom:10px;
+      box-shadow:none;
+    }
+    .value, .zeile-tag{color:#000;}
+    .disclaimer{background:#fff; border:1px solid #999; break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="app">
+  <header>
+    <div>
+      <div class="title">Anlage KAP</div>
+    </div>
+    <div class="doc-id">
+      Steuerjahr
+      <select id="taxYearSelect" class="year-select"></select>
+      <span id="taxYearPrintLabel" class="print-only"></span>
+    </div>
+  </header>
+
+  <div class="body-grid">
+    <div class="margin-strip" id="marginStrip"></div>
+    <main id="main"></main>
+  </div>
+</div>
+
+<aside class="pdf-panel" id="pdfPanel">
+  <div class="pdf-panel-inner">
+    <div class="pdf-panel-header">
+      <div>
+        <div class="pdf-title">Amtliches Formular</div>
+        <div class="pdf-sub" id="pdfSub">Anlage KAP · Steuerjahr 2025</div>
+      </div>
+      <button class="pdf-close" id="pdfCloseBtn" aria-label="Schließen">×</button>
+    </div>
+    <iframe id="pdfFrame" src="anlage-kap-formular-2025.pdf#toolbar=0&view=FitH" title="Anlage KAP Formular"></iframe>
+  </div>
+</aside>
+</div>
+
+<button class="pdf-fab" id="pdfToggleBtn">📄 Formular anzeigen</button>
+
+<script>
+// DBA-Höchstsätze: Anteil der Bruttodividende, der max. auf die deutsche
+// Steuer angerechnet werden kann. Quelle: gängige DBA-Sätze für
+// Portfolio-Dividenden (Streubesitz) – Einzelfälle können abweichen.
+const DBA = [
+  {name:'USA', cap:0.15},
+  {name:'Kanada', cap:0.15},
+  {name:'Vereinigtes Königreich', cap:0.00},
+  {name:'Niederlande', cap:0.15},
+  {name:'Frankreich', cap:0.128},
+  {name:'Schweiz', cap:0.15},
+  {name:'Irland', cap:0.00},
+  {name:'Deutschland (ausl. Depot)', cap:0.00},
+  {name:'Japan', cap:0.15},
+  {name:'Südkorea', cap:0.15},
+  {name:'Italien', cap:0.15},
+  {name:'Spanien', cap:0.15},
+  {name:'Schweden', cap:0.15},
+  {name:'Norwegen', cap:0.15},
+  {name:'Belgien', cap:0.15},
+  {name:'Dänemark', cap:0.15},
+  {name:'Finnland', cap:0.15},
+  {name:'Österreich', cap:0.15},
+  {name:'Sonstiges Land (15 % Standard)', cap:0.15},
+];
+
+const BROKER_DEFS = [
+  {code:'DE1', group:'inland', label:'Broker TRP'},
+  {code:'DE2', group:'inland', label:'Broker ING'},
+  {code:'NL', group:'ausland', label:'Broker NL'},
+  {code:'UK', group:'ausland', label:'Broker UK'},
+  {code:'PL', group:'ausland', label:'Broker PL'},
+];
+const BROKER_LABELS = Object.fromEntries(BROKER_DEFS.map(b => [b.code, b.label]));
+
+// Steuerjahre, für die die Zeilennummern dieser App bestätigt identisch sind
+// (Zeile 7, 8, 10, 12, 13, 16, 19, 20, 22, 23, 37, 38, 41 unverändert 2023–2025).
+const SUPPORTED_YEARS = [2025, 2024, 2023];
+
+const state = {
+  currentKey: 'intro',
+  taxYear: SUPPORTED_YEARS[0],
+  brokerSelected: Object.fromEntries(BROKER_DEFS.map(b => [b.code, false])), // welche Broker ausgewählt sind
+  skipWithholding: false,     // Verzicht auf Anrechnung der Quellensteuer (Zeile 41)
+  entries: {}                 // pro Broker-Code: {gains, countryRows}
+};
+
+function zeileForCode(code){
+  const def = BROKER_DEFS.find(b => b.code === code);
+  return def && def.group === 'inland' ? 7 : 19;
+}
+
+function getEntry(code){
+  if(!state.entries[code]){
+    state.entries[code] = {
+      direktNetto: null,     // nur Inlandsbroker: Kapitalerträge netto laut Steuerbescheinigung (Zeile 7)
+      gewinneAktien: null,   // Gewinne aus Aktienveräußerungen
+      verlusteAktien: null,  // Verluste aus der Veräußerung von Aktien
+      gewinneSonst: null,    // Gewinne ohne Gewinne aus der Veräußerung von Aktien
+      verlusteSonst: null,   // Verluste ohne Verluste aus der Veräußerung von Aktien
+      altAnteile: null,      // nur Inlandsbroker, optional: Zeile 10 (bestandsgeschützte Alt-Anteile)
+      sparerPauschbetrag: null, // optional: bei diesem Broker genutzter Sparer-Pauschbetrag (Zeile 16)
+      kapst: null,            // optional: einbehaltene Kapitalertragsteuer (Zeile 37)
+      soli: null,              // optional: einbehaltener Solidaritätszuschlag (Zeile 38)
+      countryRows: [ {country: DBA[0].name, gross: null, tax: null} ]
+    };
+  }
+  return state.entries[code];
+}
+
+function activeBrokerCodes(){
+  return BROKER_DEFS.filter(b => state.brokerSelected[b.code]).map(b => b.code);
+}
+
+// Baut die Liste der Screens abhängig vom aktuellen Stand der Antworten.
+// Reihenfolge: Broker-Auswahl -> Gewinne/Dividenden je ausgewähltem Broker
+// (Inlandsbroker zuerst, dann Auslandsbroker, in Registrierungsreihenfolge) -> Ergebnis.
+function buildScreens(){
+  const screens = [{key:'intro'}, {key:'brokerType'}];
+  const codes = activeBrokerCodes();
+  const inlandCodes = codes.filter(c => zeileForCode(c) === 7);
+  const auslandCodes = codes.filter(c => zeileForCode(c) === 19);
+
+  inlandCodes.forEach(code=>{
+    screens.push({key:'amt-'+code, type:'amounts', code});
+  });
+  if(inlandCodes.length && auslandCodes.length){
+    screens.push({key:'zwischenergebnis-inland', type:'zwischenergebnis'});
+  }
+  auslandCodes.forEach(code=>{
+    screens.push({key:'amt-'+code, type:'amounts', code});
+    screens.push({key:'div-'+code, type:'dividends', code});
+  });
+  screens.push({key:'result', type:'result'});
+  return screens;
+}
+
+function goNext(){
+  const screens = buildScreens();
+  const idx = screens.findIndex(s => s.key === state.currentKey);
+  const next = screens[Math.min(idx + 1, screens.length - 1)];
+  state.currentKey = next.key;
+  render();
+}
+function goBack(){
+  const screens = buildScreens();
+  const idx = screens.findIndex(s => s.key === state.currentKey);
+  const prev = screens[Math.max(idx - 1, 0)];
+  state.currentKey = prev.key;
+  render();
+}
+
+function fmt(n){
+  return n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function parseAmount(str){
+  if(str === '' || str === null || str === undefined) return null;
+  const normalized = str.replace(/\./g,'').replace(',', '.');
+  const n = parseFloat(normalized);
+  return isNaN(n) ? null : n;
+}
+
+function currentZeile(screen){
+  if(!screen) return null;
+  if(screen.type === 'amounts') return zeileForCode(screen.code);
+  if(screen.type === 'dividends') return 41;
+  if(screen.type === 'zwischenergebnis') return 7;
+  if(screen.type === 'result') return 41;
+  return null;
+}
+function filledZeilen(){
+  const out = [];
+  const codes = activeBrokerCodes();
+  codes.forEach(code=>{
+    const e = getEntry(code);
+    const anyGains = e.direktNetto !== null || e.gewinneAktien !== null || e.verlusteAktien !== null || e.gewinneSonst !== null || e.verlusteSonst !== null;
+    const anyDiv = e.countryRows.some(r => r.gross !== null);
+    if(anyGains || anyDiv){
+      out.push(zeileForCode(code));
+      if(zeileForCode(code) === 7){ out.push(37); out.push(38); }
+    }
+  });
+  const anyTax = codes.some(c => getEntry(c).countryRows.some(r => r.tax !== null));
+  if(!state.skipWithholding && anyTax) out.push(41);
+  return [...new Set(out)];
+}
+
+const ZEILEN = [7, 19, 37, 38, 41];
+function renderMargin(activeZeile){
+  const strip = document.getElementById('marginStrip');
+  strip.innerHTML = '';
+  const filled = filledZeilen();
+  ZEILEN.forEach(z=>{
+    const el = document.createElement('div');
+    el.className = 'zeile-tick';
+    if(filled.includes(z)) el.className += ' filled';
+    if(z === activeZeile) el.className += ' active';
+    el.textContent = z;
+    strip.appendChild(el);
+  });
+}
+
+function render(){
+  window.scrollTo(0, 0);
+  const screens = buildScreens();
+  let screen = screens.find(s => s.key === state.currentKey);
+  if(!screen){ state.currentKey = 'intro'; screen = screens[0]; }
+
+  renderMargin(currentZeile(screen));
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  if(screen.key === 'intro') return renderIntro(main);
+  if(screen.key === 'brokerType') return renderBrokerType(main);
+  if(screen.type === 'amounts') return renderAmounts(main, screen.code);
+  if(screen.type === 'dividends') return renderDividends(main, screen.code);
+  if(screen.type === 'zwischenergebnis') return renderZwischenergebnis(main);
+  if(screen.type === 'result') return renderResult(main);
+}
+
+function renderIntro(main){
+  main.innerHTML = `
+    <div class="eyebrow">Vor dem Ausfüllen</div>
+    <h1>Kapitalerträge für die Anlage KAP zusammenstellen</h1>
+    <p class="hint">
+      Dieser Fragebogen ermittelt aus deinen Veräußerungsgewinnen, Bruttodividenden und
+      gezahlter ausländischer Quellensteuer die Beträge, die du in die Anlage KAP
+      einträgst — mit der passenden Zeile aus dem amtlichen Formular. Hast du mehrere
+      Auslandsbroker, fragen wir Gewinne und Dividenden für jeden einzeln ab und fassen
+      am Ende alles zusammen. Er ersetzt keine Steuerberatung, hilft dir aber, die
+      Steuerbescheinigungen richtig zuzuordnen.
+    </p>
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="primary" id="startBtn">Fragebogen starten</button>
+    </div>
+  `;
+  document.getElementById('startBtn').onclick = goNext;
+}
+
+function renderBrokerType(main){
+  const anySelected = activeBrokerCodes().length > 0;
+  const groupHtml = (groupKey, groupLabel, hint) => `
+    <div class="broker-sub">
+      <div class="sub-label"><strong>${groupLabel}</strong> — ${hint}</div>
+      ${BROKER_DEFS.filter(b => b.group === groupKey).map(b => `
+        <label class="broker-chip">
+          <input type="checkbox" data-code="${b.code}" ${state.brokerSelected[b.code] ? 'checked' : ''}>
+          <span>${b.label}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+  main.innerHTML = `
+    <div class="eyebrow">Depotauswahl</div>
+    <h1>Bei welchen Brokern hast du ein Depot?</h1>
+    <p class="hint">Mehrfachauswahl möglich. Inlandsbroker haben die Kapitalertragsteuer
+      bereits automatisch einbehalten (Zeile 7), Auslandsbroker nicht (Zeile 19) — wir
+      fragen Gewinne und Dividenden danach für jeden ausgewählten Broker einzeln ab,
+      Inlandsbroker zuerst.</p>
+
+    ${groupHtml('inland', 'INLANDSBROKER', 'Steuerabzug bereits erfolgt')}
+    ${groupHtml('ausland', 'AUSLANDSBROKER', 'kein deutscher Steuerabzug')}
+
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="secondary" id="backBtn">Zurück</button>
+      <button class="primary" id="nextBtn" ${anySelected ? '' : 'disabled'}>Weiter</button>
+    </div>
+  `;
+  main.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange = ()=>{
+      state.brokerSelected[cb.dataset.code] = cb.checked;
+      document.getElementById('nextBtn').disabled = activeBrokerCodes().length === 0;
+    };
+  });
+  document.getElementById('backBtn').onclick = goBack;
+  document.getElementById('nextBtn').onclick = goNext;
+}
+
+function renderAmounts(main, code){
+  if(zeileForCode(code) === 7) return renderAmountsInland(main, code);
+  return renderAmountsAusland(main, code);
+}
+
+function renderAmountsInland(main, code){
+  const entry = getEntry(code);
+  const val = (v) => v !== null ? String(v).replace('.',',') : '';
+  const anyBreakdown = entry.gewinneAktien !== null || entry.verlusteAktien !== null || entry.verlusteSonst !== null;
+
+  main.innerHTML = `
+    <div class="eyebrow">Gewinne · ${BROKER_LABELS[code]} · Zeile 7</div>
+    <h1>Kapitalerträge bei ${BROKER_LABELS[code]}</h1>
+    <p class="hint">Inländische Banken verrechnen Gewinne und Verluste in der Regel schon
+      intern und weisen auf der Steuerbescheinigung nur eine einzige Netto-Zahl für
+      Zeile 7 aus — anders als bei Auslandsbrokern.</p>
+
+    <div class="field">
+      <label>Kapitalerträge (netto) <span class="mini-zeile">Zeile 7</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="nettoInput" placeholder="0,00" value="${val(entry.direktNetto)}">
+      </div>
+    </div>
+    <div class="field-explain">Trage hier die "Höhe der Kapitalerträge" von deiner
+      Steuerbescheinigung ein (bei Verlust als negative Zahl).</div>
+
+    <div class="broker-sub" style="margin-top:4px;">
+      <div class="sub-label">
+        <strong>Nur falls angegeben:</strong> Manche Bescheinigungen (z. B. von Broker ING)
+        schlüsseln zusätzlich auf, wie viel vom Netto-Betrag auf Aktienverkäufe, Optionen/
+        Termingeschäfte oder Alt-Anteile entfällt. Falls deine das tut, kannst du es hier
+        optional ergänzen — sonst einfach leer lassen.
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Gewinne aus Aktienveräußerungen <span class="mini-zeile neutral">Zeile 8</span></label>
+        <div class="amount-input">
+          <span>€</span>
+          <input type="text" inputmode="decimal" id="gewinneAktienInput" placeholder="0,00" value="${val(entry.gewinneAktien)}">
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Gewinne aus bestandsgeschützten Alt-Anteilen <span class="mini-zeile neutral">Zeile 10</span></label>
+        <div class="amount-input">
+          <span>€</span>
+          <input type="text" inputmode="decimal" id="altAnteileInput" placeholder="0,00" value="${val(entry.altAnteile)}">
+        </div>
+      </div>
+      <div class="field-explain" style="margin-top:-8px;">Betrifft nur Fondsanteile, die vor
+        2009 gekauft wurden (steuerfreier Bestandsschutz vor der Abgeltungsteuer). Bei den
+        meisten Depots 0.</div>
+      <div class="field" style="margin-top:12px;">
+        <label>Verluste aus der Veräußerung von Aktien <span class="mini-zeile neutral">Zeile 13</span></label>
+        <div class="amount-input">
+          <span>€</span>
+          <input type="text" inputmode="decimal" id="verlusteAktienInput" placeholder="0,00" value="${val(entry.verlusteAktien)}">
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Verluste ohne Verluste aus Aktienveräußerung <span class="mini-zeile neutral">Zeile 12</span></label>
+        <div class="amount-input">
+          <span>€</span>
+          <input type="text" inputmode="decimal" id="verlusteSonstInput" placeholder="0,00" value="${val(entry.verlusteSonst)}">
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:22px;">
+      <label>Genutzter Sparer-Pauschbetrag (optional) <span class="mini-zeile neutral">Zeile 16</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="sparerInput" placeholder="0,00" value="${val(entry.sparerPauschbetrag)}">
+      </div>
+    </div>
+    <div class="field-explain">Falls du bei ${BROKER_LABELS[code]} einen Freistellungsauftrag
+      erteilt hast — steht auf der Steuerbescheinigung. Wird am Ende über alle Broker
+      aufsummiert. Leer lassen, falls nicht bekannt oder nicht genutzt.</div>
+
+    <div class="field" style="margin-top:22px;">
+      <label>Einbehaltene Kapitalertragsteuer (optional) <span class="mini-zeile neutral">Zeile 37</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="kapstInput" placeholder="0,00" value="${val(entry.kapst)}">
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>Einbehaltener Solidaritätszuschlag (optional) <span class="mini-zeile neutral">Zeile 38</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="soliInput" placeholder="0,00" value="${val(entry.soli)}">
+      </div>
+    </div>
+    <div class="field-explain">Steht ebenfalls auf der Steuerbescheinigung von ${BROKER_LABELS[code]}.
+      Wird nur zur Anzeige übernommen und am Ende über alle Broker summiert — fließt nicht
+      in die Berechnung von Zeile 7 ein.</div>
+
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="secondary" id="backBtn">Zurück</button>
+      <button class="primary" id="nextBtn">Weiter</button>
+    </div>
+  `;
+
+  document.getElementById('backBtn').onclick = ()=>{ read(); goBack(); };
+  document.getElementById('nextBtn').onclick = ()=>{ read(); goNext(); };
+
+  function read(){
+    entry.direktNetto = parseAmount(document.getElementById('nettoInput').value);
+    entry.gewinneAktien = parseAmount(document.getElementById('gewinneAktienInput').value);
+    entry.altAnteile = parseAmount(document.getElementById('altAnteileInput').value);
+    entry.verlusteAktien = parseAmount(document.getElementById('verlusteAktienInput').value);
+    entry.verlusteSonst = parseAmount(document.getElementById('verlusteSonstInput').value);
+    entry.sparerPauschbetrag = parseAmount(document.getElementById('sparerInput').value);
+    entry.kapst = parseAmount(document.getElementById('kapstInput').value);
+    entry.soli = parseAmount(document.getElementById('soliInput').value);
+  }
+}
+
+function renderAmountsAusland(main, code){
+  const entry = getEntry(code);
+  const zeile = 19;
+  const bzGewinn = 20;
+  const bzVerlustAktien = 23;
+  const bzVerlustSonst = 22;
+  const brokerLabel = ` · ${BROKER_LABELS[code]}`;
+  const val = (v) => v !== null ? String(v).replace('.',',') : '';
+
+  main.innerHTML = `
+    <div class="eyebrow">Gewinne${brokerLabel} · Zeile ${zeile}</div>
+    <h1>Realisierte Gewinne/Verluste bei ${BROKER_LABELS[code]}</h1>
+    <p class="hint">Viele Broker (z. B. Interactive Brokers, Trading212) zeigen diese vier
+      Zeilen genau so in ihrem Jahresreport an. Übertrage sie 1:1 hierher — die App ordnet
+      sie automatisch den richtigen Zeilen der Anlage KAP zu. Die Gesamtsumme für Zeile
+      ${zeile} selbst ergibt sich erst zusammen mit den Dividenden im nächsten Schritt und
+      erscheint im Ergebnis am Ende.</p>
+
+    <div class="field">
+      <label>Gewinne aus Aktienveräußerungen <span class="mini-zeile">Zeile ${bzGewinn}</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="gewinneAktienInput" placeholder="0,00" value="${val(entry.gewinneAktien)}">
+      </div>
+    </div>
+    <div class="field-explain">Realisierte Gewinne aus dem Verkauf von Aktien. Zählt zur
+      Gesamtsumme (Zeile ${zeile}) und wird zusätzlich separat als Teilbetrag in Zeile ${bzGewinn} ausgewiesen.</div>
+
+    <div class="field">
+      <label>Verluste aus der Veräußerung von Aktien <span class="mini-zeile">Zeile ${bzVerlustAktien}</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="verlusteAktienInput" placeholder="0,00" value="${val(entry.verlusteAktien)}">
+      </div>
+    </div>
+    <div class="field-explain">Realisierte Verluste aus Aktienverkäufen — als positive Zahl,
+      genau wie im Broker-Report. Diese Verluste dürfen laut Gesetz nur mit Aktiengewinnen
+      verrechnet werden, deshalb eine eigene Zeile, getrennt von sonstigen Verlusten.</div>
+
+    <div class="field">
+      <label>Gewinne ohne Gewinne aus Aktienveräußerung <span class="mini-zeile neutral">keine eigene Zeile</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="gewinneSonstInput" placeholder="0,00" value="${val(entry.gewinneSonst)}">
+      </div>
+    </div>
+    <div class="field-explain">Sonstige Kapitalerträge ohne Aktienbezug (z. B. aus Anleihen
+      oder Fonds). Dafür gibt es keine eigene Zeile — sie fließen direkt mit in die
+      Gesamtsumme (Zeile ${zeile}) ein.</div>
+
+    <div class="field">
+      <label>Verluste ohne Verluste aus Aktienveräußerung <span class="mini-zeile">Zeile ${bzVerlustSonst}</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="verlusteSonstInput" placeholder="0,00" value="${val(entry.verlusteSonst)}">
+      </div>
+    </div>
+    <div class="field-explain">Sonstige Verluste ohne Aktienbezug — als positive Zahl. Diese
+      dürfen mit allen Kapitalerträgen verrechnet werden (nicht nur mit Aktiengewinnen),
+      separat in Zeile ${bzVerlustSonst}.</div>
+
+    <div class="netto-preview" id="nettoPreview"></div>
+
+    <div class="field" style="margin-top:22px;">
+      <label>Genutzter Sparer-Pauschbetrag (optional) <span class="mini-zeile neutral">Zeile 16</span></label>
+      <div class="amount-input">
+        <span>€</span>
+        <input type="text" inputmode="decimal" id="sparerInput" placeholder="0,00" value="${val(entry.sparerPauschbetrag)}">
+      </div>
+    </div>
+    <div class="field-explain">Bei Auslandsbrokern selten relevant, da ein Freistellungsauftrag
+      nur bei deutschem Steuerabzug greift. Falls bei ${BROKER_LABELS[code]} trotzdem
+      einer hinterlegt ist, hier eintragen — sonst leer lassen.</div>
+
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="secondary" id="backBtn">Zurück</button>
+      <button class="primary" id="nextBtn">Weiter</button>
+    </div>
+  `;
+
+  updatePreview();
+  ['gewinneAktienInput','verlusteAktienInput','gewinneSonstInput','verlusteSonstInput'].forEach(id=>{
+    document.getElementById(id).addEventListener('blur', ()=>{ read(); updatePreview(); });
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+
+  document.getElementById('backBtn').onclick = ()=>{ read(); goBack(); };
+  document.getElementById('nextBtn').onclick = ()=>{ read(); goNext(); };
+
+  function read(){
+    entry.gewinneAktien = parseAmount(document.getElementById('gewinneAktienInput').value);
+    entry.verlusteAktien = parseAmount(document.getElementById('verlusteAktienInput').value);
+    entry.gewinneSonst = parseAmount(document.getElementById('gewinneSonstInput').value);
+    entry.verlusteSonst = parseAmount(document.getElementById('verlusteSonstInput').value);
+    entry.sparerPauschbetrag = parseAmount(document.getElementById('sparerInput').value);
+  }
+
+  function updatePreview(){
+    const gA = parseAmount(document.getElementById('gewinneAktienInput').value) || 0;
+    const vA = parseAmount(document.getElementById('verlusteAktienInput').value) || 0;
+    const gS = parseAmount(document.getElementById('gewinneSonstInput').value) || 0;
+    const vS = parseAmount(document.getElementById('verlusteSonstInput').value) || 0;
+    const netto = gA - vA + gS - vS;
+    document.getElementById('nettoPreview').innerHTML =
+      `Kapitalerträge netto (wie in deinem Broker-Report): <strong>${fmt(netto)} €</strong>`;
+  }
+}
+
+function renderDividends(main, code){
+  const entry = getEntry(code);
+  const brokerLabel = ` · ${BROKER_LABELS[code]}`;
+  main.innerHTML = `
+    <div class="eyebrow">Dividenden${brokerLabel} · Zeile 41</div>
+    <h1>Dividenden nach Land bei ${BROKER_LABELS[code]}</h1>
+    <p class="hint">Trage pro Land die Bruttodividende und die dort einbehaltene
+      Quellensteuer ein. Anhand des DBA-Höchstsatzes wird automatisch berechnet,
+      wie viel davon in Deutschland anrechenbar ist.</p>
+
+    <label class="skip-toggle">
+      <input type="checkbox" id="skipToggle" ${state.skipWithholding ? 'checked' : ''}>
+      <span>Auf die Anrechnung der ausländischen Quellensteuer verzichten — Zeile 41 bleibt
+        leer, Zeile ${zeileForCode(code)} wird trotzdem befüllt.</span>
+    </label>
+
+    <div id="rowsContainer"></div>
+    <button class="add-row-btn" id="addRowBtn">+ Land hinzufügen</button>
+
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="secondary" id="backBtn">Zurück</button>
+      <button class="primary" id="nextBtn">Weiter</button>
+    </div>
+  `;
+
+  renderRows();
+
+  document.getElementById('skipToggle').onchange = (e)=>{
+    state.skipWithholding = e.target.checked;
+    renderRows();
+  };
+  document.getElementById('addRowBtn').onclick = ()=>{
+    entry.countryRows.push({country: DBA[0].name, gross: null, tax: null});
+    renderRows();
+  };
+  document.getElementById('backBtn').onclick = goBack;
+  document.getElementById('nextBtn').onclick = goNext;
+
+  function renderRows(){
+    const container = document.getElementById('rowsContainer');
+    container.innerHTML = '';
+    entry.countryRows.forEach((row, i)=>{
+      const capPct = DBA.find(d=>d.name===row.country)?.cap ?? 0.15;
+      const el = document.createElement('div');
+      el.className = 'country-row';
+      el.innerHTML = `
+        ${entry.countryRows.length > 1 ? `<button class="remove-row" data-i="${i}">Entfernen</button>` : ''}
+        <select data-i="${i}" class="countrySelect">
+          ${DBA.map(d=>`<option value="${d.name}" ${d.name===row.country?'selected':''}>${d.name}</option>`).join('')}
+        </select>
+        ${!state.skipWithholding ? `<div class="cap-note">DBA-Höchstsatz: ${(capPct*100).toFixed(1)} % der Bruttodividende anrechenbar</div>` : ''}
+        <div class="two-col">
+          <div class="field">
+            <label>Bruttodividende</label>
+            <div class="amount-input">
+              <span>€</span>
+              <input type="text" inputmode="decimal" class="grossInput" data-i="${i}" placeholder="0,00" value="${row.gross !== null ? String(row.gross).replace('.',',') : ''}">
+            </div>
+          </div>
+          ${!state.skipWithholding ? `
+          <div class="field">
+            <label>Gezahlte QSt</label>
+            <div class="amount-input">
+              <span>€</span>
+              <input type="text" inputmode="decimal" class="taxInput" data-i="${i}" placeholder="0,00" value="${row.tax !== null ? String(row.tax).replace('.',',') : ''}">
+            </div>
+          </div>` : ''}
+        </div>
+      `;
+      container.appendChild(el);
+    });
+
+    container.querySelectorAll('.countrySelect').forEach(sel=>{
+      sel.onchange = ()=>{ entry.countryRows[sel.dataset.i].country = sel.value; renderRows(); };
+    });
+    container.querySelectorAll('.grossInput').forEach(inp=>{
+      inp.onblur = ()=>{ entry.countryRows[inp.dataset.i].gross = parseAmount(inp.value); };
+    });
+    container.querySelectorAll('.taxInput').forEach(inp=>{
+      inp.onblur = ()=>{ entry.countryRows[inp.dataset.i].tax = parseAmount(inp.value); };
+    });
+    container.querySelectorAll('.remove-row').forEach(btn=>{
+      btn.onclick = ()=>{
+        entry.countryRows.splice(btn.dataset.i, 1);
+        renderRows();
+      };
+    });
+  }
+}
+
+function computeGroupTotals(groupCodes){
+  let sum = 0, gewinneAktien = 0, verlusteAktien = 0, verlusteSonst = 0, dividends = 0, altAnteile = 0;
+  let withholding = 0, anrechenbar = 0, sparerPauschbetrag = 0, kapst = 0, soli = 0;
+  const perCountry = [];
+  const perBroker = [];
+  groupCodes.forEach(code=>{
+    const entry = getEntry(code);
+    const gA = entry.gewinneAktien || 0;
+    const vA = entry.verlusteAktien || 0;
+    const gS = entry.gewinneSonst || 0;
+    const vS = entry.verlusteSonst || 0;
+    gewinneAktien += gA;
+    verlusteAktien += vA;
+    verlusteSonst += vS;
+    altAnteile += entry.altAnteile || 0;
+    sparerPauschbetrag += entry.sparerPauschbetrag || 0;
+    kapst += entry.kapst || 0;
+    soli += entry.soli || 0;
+
+    const codeNetto = entry.direktNetto !== null ? entry.direktNetto : (gA - vA) + (gS - vS);
+    // Inlandsbroker: Bank hat bereits verrechnet, Netto-Zahl direkt übernehmen
+    // (die evtl. zusätzlich angegebenen Aktien-Teilbeträge sind nur Aufschlüsselung,
+    // nicht separat zu addieren, da sie im Netto-Betrag bereits enthalten sind).
+
+    let codeDividends = 0;
+    entry.countryRows.forEach(row=>{
+      const gross = row.gross || 0;
+      const tax = row.tax || 0;
+      const capPct = DBA.find(d=>d.name===row.country)?.cap ?? 0.15;
+      const capAmount = gross * capPct;
+      const rowAnrechenbar = Math.max(0, Math.min(tax, capAmount));
+      codeDividends += gross;
+      withholding += tax;
+      anrechenbar += rowAnrechenbar;
+      if(gross || tax){
+        perCountry.push({broker: BROKER_LABELS[code], country: row.country, gross, tax, rowAnrechenbar});
+      }
+    });
+
+    const codeTotal = codeNetto + codeDividends;
+    sum += codeTotal;
+    dividends += codeDividends;
+    perBroker.push({code, label: BROKER_LABELS[code], value: codeTotal});
+  });
+  return {sum, gewinneAktien, verlusteAktien, verlusteSonst, dividends, altAnteile, withholding, anrechenbar, perCountry, sparerPauschbetrag, perBroker, kapst, soli};
+}
+
+function ertragsCard(zeile, group, label, brokerNote){
+  if(group.sum === 0 && group.gewinneAktien === 0 && group.verlusteAktien === 0 && group.verlusteSonst === 0 && group.dividends === 0 && group.altAnteile === 0) return '';
+  const bzGewinn = zeile === 7 ? 8 : 20;
+  const bzVerlustSonst = zeile === 7 ? 12 : 22;
+  const bzVerlustAktien = zeile === 7 ? 13 : 23;
+  const hasBreakdown = group.gewinneAktien > 0.004 || group.verlusteAktien > 0.004 || group.verlusteSonst > 0.004 || group.altAnteile > 0.004;
+  const showBrokerMath = group.perBroker && group.perBroker.length > 1;
+  return `
+  <div class="result-card">
+    <span class="stamp-mark">berechnet</span>
+    <div class="zeile-tag">ZEILE ${zeile}</div>
+    <div class="label">${label} — Netto aus Aktiengewinnen/-verlusten, sonstigen
+      Gewinnen/Verlusten und Bruttodividenden.${brokerNote}</div>
+    <div class="value">${fmt(group.sum)}<span class="cur">EUR</span></div>
+    ${showBrokerMath ? `
+    <div class="note" style="border-top:1px dashed var(--line); padding-top:8px; margin-top:10px;">
+      ${group.perBroker.map(b => `${b.label}: ${fmt(b.value)} €`).join(' + ')}<br>
+      = <strong>${fmt(group.sum)} €</strong>
+    </div>` : ''}
+  </div>
+  ${hasBreakdown ? `
+  <div class="result-card">
+    <div class="zeile-tag">ZEILE ${bzGewinn} / ${bzVerlustSonst} / ${bzVerlustAktien}${zeile === 7 && group.altAnteile > 0.004 ? ' / 10' : ''}</div>
+    <div class="label">Teilbeträge aus Zeile ${zeile}, die das Finanzamt für die
+      Verlustverrechnung braucht (Aktienverluste dürfen nur mit Aktiengewinnen verrechnet
+      werden).</div>
+    <div class="note" style="border-top:none; padding-top:0; margin-top:0;">
+      <strong>Zeile ${bzGewinn}</strong> — Gewinne aus Aktienveräußerungen: ${fmt(group.gewinneAktien)} €<br>
+      ${zeile === 7 && group.altAnteile > 0.004 ? `<strong>Zeile 10</strong> — Gewinne aus Alt-Anteilen: ${fmt(group.altAnteile)} €<br>` : ''}
+      <strong>Zeile ${bzVerlustAktien}</strong> — Verluste aus Aktienveräußerungen: ${fmt(group.verlusteAktien)} €<br>
+      <strong>Zeile ${bzVerlustSonst}</strong> — Verluste ohne Aktienveräußerungen: ${fmt(group.verlusteSonst)} €
+    </div>
+  </div>` : ''}`;
+}
+
+function renderZwischenergebnis(main){
+  const codes = activeBrokerCodes();
+  const inlandCodes = codes.filter(c => zeileForCode(c) === 7);
+  const g = computeGroupTotals(inlandCodes);
+
+  main.innerHTML = `
+    <div class="eyebrow">Zwischenergebnis</div>
+    <h1>Inlandsbroker abgeschlossen</h1>
+    <p class="hint">Das ist die Zwischensumme für Zeile 7 aus deinen Inlandsbrokern. Als
+      Nächstes fragen wir die Auslandsbroker ab — am Ende siehst du beide Ergebnisse
+      nochmal zusammen im Gesamtergebnis.</p>
+
+    ${ertragsCard(7, g, 'Kapitalerträge, die dem inländischen Steuerabzug unterlegen haben', '')}
+
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="secondary" id="backBtn">Zurück</button>
+      <button class="primary" id="nextBtn">Weiter zu Auslandsbrokern</button>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = goBack;
+  document.getElementById('nextBtn').onclick = goNext;
+}
+
+function renderResult(main){
+  const codes = activeBrokerCodes();
+  const inlandCodes = codes.filter(c => zeileForCode(c) === 7);
+  const auslandCodes = codes.filter(c => zeileForCode(c) === 19);
+  const gInland = computeGroupTotals(inlandCodes);
+  const gAusland = computeGroupTotals(auslandCodes);
+  const totalWithholding = gInland.withholding + gAusland.withholding;
+  const totalAnrechenbar = gInland.anrechenbar + gAusland.anrechenbar;
+  const perCountry = [...gInland.perCountry, ...gAusland.perCountry];
+  const nichtAnrechenbar = Math.max(0, totalWithholding - totalAnrechenbar);
+  const brokerList = auslandCodes.map(c => BROKER_LABELS[c]);
+
+  main.innerHTML = `
+    <div class="eyebrow">Ergebnis</div>
+    <h1>Das trägst du in die Anlage KAP ein</h1>
+    <p class="hint">Werte für Steuerjahr ${state.taxYear}, Formularstand ${state.taxYear}.
+      Prüfe Zeilennummern gegen die aktuelle Anlage KAP auf elster.de, falls sich das
+      Formular geändert hat.</p>
+
+    ${ertragsCard(7, gInland, 'Kapitalerträge, die dem inländischen Steuerabzug unterlegen haben', '')}
+    ${ertragsCard(19, gAusland, 'Ausländische Kapitalerträge ohne inländischen Steuerabzug',
+      brokerList.length ? `<br>Zusammengefasst aus: ${brokerList.join(', ')}` : '')}
+
+    ${state.skipWithholding ? `
+    <div class="result-card">
+      <div class="zeile-tag">ZEILE 41</div>
+      <div class="label">Du hast auf die Anrechnung der ausländischen Quellensteuer verzichtet
+        — diese Zeile bleibt bewusst leer. Die gezahlte Quellensteuer wird damit nicht auf
+        deine deutsche Steuer angerechnet.</div>
+    </div>` : `
+    <div class="result-card">
+      <div class="zeile-tag">ZEILE 41</div>
+      <div class="label">Anrechenbare, noch nicht angerechnete ausländische Steuern — je Land
+        auf den DBA-Höchstsatz begrenzt, über alle Broker aufsummiert.</div>
+      <div class="value">${fmt(totalAnrechenbar)}<span class="cur">EUR</span></div>
+      ${perCountry.map(r=>`
+        <div class="note" style="border-top:1px dashed var(--line); padding-top:8px; margin-top:8px;">
+          <strong>${r.country}</strong>${brokerList.length > 1 ? ` (${r.broker})` : ''} — Brutto ${fmt(r.gross)} €, gezahlt ${fmt(r.tax)} € →
+          anrechenbar ${fmt(r.rowAnrechenbar)} €
+          ${r.tax - r.rowAnrechenbar > 0.004 ? ` (${fmt(r.tax - r.rowAnrechenbar)} € nicht anrechenbar)` : ''}
+        </div>`).join('')}
+      ${nichtAnrechenbar > 0.004 ? `<div class="note">Insgesamt ${fmt(nichtAnrechenbar)} € über den DBA-Sätzen — diesen Teil kannst du ggf. direkt beim jeweiligen Quellenstaat zurückfordern.</div>` : ''}
+    </div>`}
+
+    ${(() => {
+      const kapstEntries = codes
+        .map(code => ({code, kapst: getEntry(code).kapst, soli: getEntry(code).soli}))
+        .filter(e => (e.kapst !== null && e.kapst !== 0) || (e.soli !== null && e.soli !== 0));
+      const totalKapst = kapstEntries.reduce((s, e) => s + (e.kapst || 0), 0);
+      const totalSoli = kapstEntries.reduce((s, e) => s + (e.soli || 0), 0);
+      if(!inlandCodes.length) return '';
+      return `
+    <div class="result-card">
+      <div class="zeile-tag">ZEILE 37 / 38</div>
+      <div class="label">Einbehaltene Kapitalertragsteuer und Solidaritätszuschlag laut
+        Steuerbescheinigung — über alle Inlandsbroker aufsummiert. Reine Anzeige, fließt
+        nicht in die Zeile-7-Summe oben ein.</div>
+      ${kapstEntries.length ? `
+      <div class="note" style="border-top:none; padding-top:0; margin-top:0;">
+        <strong>Zeile 37</strong> — Kapitalertragsteuer: ${fmt(totalKapst)} €<br>
+        <strong>Zeile 38</strong> — Solidaritätszuschlag: ${fmt(totalSoli)} €
+      </div>
+      ${kapstEntries.length > 1 ? kapstEntries.map(e => `
+        <div class="note" style="border-top:1px dashed var(--line); padding-top:8px; margin-top:8px;">
+          <strong>${BROKER_LABELS[e.code]}</strong> — KapSt ${fmt(e.kapst || 0)} €, Soli ${fmt(e.soli || 0)} €
+        </div>`).join('') : ''}
+      ` : `<div class="note" style="border-top:none; padding-top:0; margin-top:0;">Noch keine Werte eingetragen — übertrage sie direkt aus deiner Steuerbescheinigung.</div>`}
+    </div>`;
+    })()}
+
+    ${(() => {
+      const sparerEntries = codes
+        .map(code => ({code, val: getEntry(code).sparerPauschbetrag}))
+        .filter(e => e.val !== null && e.val !== 0);
+      const totalSparer = sparerEntries.reduce((s, e) => s + e.val, 0);
+      if(sparerEntries.length === 0) return '';
+      return `
+    <div class="result-card">
+      <div class="zeile-tag">ZEILE 16</div>
+      <div class="label">In Anspruch genommener Sparer-Pauschbetrag, der auf die oben
+        erklärten Kapitalerträge entfällt — über alle Broker aufsummiert.</div>
+      <div class="value">${fmt(totalSparer)}<span class="cur">EUR</span></div>
+      ${sparerEntries.length > 1 ? sparerEntries.map(e => `
+        <div class="note" style="border-top:1px dashed var(--line); padding-top:8px; margin-top:8px;">
+          <strong>${BROKER_LABELS[e.code]}</strong> — ${fmt(e.val)} €
+        </div>`).join('') : ''}
+    </div>`;
+    })()}
+
+    <div class="disclaimer">
+      Diese Berechnung ist eine Orientierungshilfe, keine Steuerberatung. Für Verlustverrechnung
+      über mehrere Depots, den Sparer-Pauschbetrag oder komplexere Fälle (z. B. thesaurierende
+      Fonds, Vorabpauschale) lohnt sich ein Blick in die Anlage KAP-INV oder ein Gespräch mit
+      einem Steuerberater.
+    </div>
+
+    <div class="spacer"></div>
+    <div class="nav-bar">
+      <button class="secondary" id="editBtn">Werte ändern</button>
+      <button class="secondary" id="printBtn">🖨️ Drucken / PDF</button>
+      <button class="primary" id="restartBtn">Neu beginnen</button>
+    </div>
+  `;
+  document.getElementById('editBtn').onclick = goBack;
+  document.getElementById('printBtn').onclick = ()=> window.print();
+  document.getElementById('restartBtn').onclick = ()=>{
+    state.currentKey = 'intro';
+    state.brokerSelected = Object.fromEntries(BROKER_DEFS.map(b => [b.code, false]));
+    state.skipWithholding = false;
+    state.entries = {};
+    render();
+  };
+}
+
+document.getElementById('pdfToggleBtn').onclick = ()=>{
+  document.getElementById('pdfPanel').classList.add('mobile-open');
+};
+document.getElementById('pdfCloseBtn').onclick = ()=>{
+  document.getElementById('pdfPanel').classList.remove('mobile-open');
+};
+
+function updatePdfForYear(){
+  document.getElementById('pdfFrame').src = `anlage-kap-formular-${state.taxYear}.pdf#toolbar=0&view=FitH`;
+  document.getElementById('pdfSub').textContent = `Anlage KAP · Steuerjahr ${state.taxYear}`;
+  document.getElementById('taxYearPrintLabel').textContent = state.taxYear;
+}
+
+const yearSelect = document.getElementById('taxYearSelect');
+yearSelect.innerHTML = SUPPORTED_YEARS.map(y => `<option value="${y}">${y}</option>`).join('');
+yearSelect.value = state.taxYear;
+yearSelect.onchange = ()=>{
+  state.taxYear = parseInt(yearSelect.value, 10);
+  updatePdfForYear();
+};
+updatePdfForYear();
+
+render();
+</script>
+</body>
+</html>
